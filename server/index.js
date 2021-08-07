@@ -6,7 +6,7 @@ const port = process.env.PORT || 4001;
 const app = express();
 const server = http.createServer(app);
 const cors = require("cors");
-server.listen(5017);
+server.listen(5005);
 app.use(cors()); // CORS 미들웨어 추가
 const io = socketIo(server, {
   cors: {
@@ -105,11 +105,83 @@ app.get("/getInsertEventD", function (req, res) {
   );
 });
 
+app.get("/getSaveTourAll", function (req, res) {
+  const addr1 = req.query.addr1 === undefined ? "" : req.query.addr1;
+  const areaCode = req.query.areaCode === undefined ? "" : req.query.areaCode;
+  const cat1 = req.query.cat1 === undefined ? "" : req.query.cat1;
+  const cat2 = req.query.cat2 === undefined ? "" : req.query.cat2;
+  const cat3 = req.query.cat3 === undefined ? "" : req.query.cat3;
+  const contentId =
+    req.query.contentId === undefined ? "" : req.query.contentId;
+  const contentTypeId =
+    req.query.contentTypeId === undefined ? "" : req.query.contentTypeId;
+  const createdTime =
+    req.query.createdTime === undefined ? "" : req.query.createdTime;
+  const eventEndDate =
+    req.query.eventEndDate === undefined ? "" : req.query.eventEndDate;
+  const eventStartDate =
+    req.query.eventStartDate === undefined ? "" : req.query.eventStartDate;
+  const firstimage =
+    req.query.firstimage === undefined ? "" : req.query.firstimage;
+  const firstimage2 =
+    req.query.firstimage2 === undefined ? "" : req.query.firstimage2;
+  const mapx = req.query.mapx === undefined ? "" : req.query.mapx;
+  const mapy = req.query.mapy === undefined ? "" : req.query.mapy;
+  const mlevel = req.query.mlevel === undefined ? "" : req.query.mlevel;
+  const modifiedtime =
+    req.query.modifiedtime === undefined ? "" : req.query.modifiedtime;
+  const readcount =
+    req.query.readcount === undefined ? "" : req.query.readcount;
+  const sigungucode =
+    req.query.sigungucode === undefined ? "" : req.query.sigungucode;
+  const tel = req.query.tel === undefined ? "" : req.query.tel;
+  const title = req.query.title === undefined ? "" : req.query.title;
+
+  db.query(
+    `INSERT INTO TourInfo VALUES('','${title}','${contentId}','${contentTypeId}','${addr1}','${areaCode}','${cat1}','${cat2}','${cat3}','${createdTime}','${eventEndDate}','${eventStartDate}','${firstimage}','${firstimage2}','${mapx}',${mapy},'${mlevel}','${modifiedtime}','${readcount}','${sigungucode}','${tel}')`,
+    (err, data) => {
+      if (!err) res.send(data);
+      else res.send(err);
+    }
+  );
+});
+
 app.get("/getAnalEventInDate", function (req, res) {
   const analDate = req?.query?.analDate;
 
   db.query(
     `SELECT * FROM event a WHERE a.fstvlendDate >= '${analDate}' AND a.state ='Y' ORDER BY a.fstvlendDate ASC`,
+    (err, data) => {
+      if (!err) res.send(data);
+      else res.send(err);
+    }
+  );
+});
+
+app.get("/getTourInfoInDate", function (req, res) {
+  const analDate = req?.query?.analDate;
+
+  db.query(
+    `SELECT * FROM TourInfo a WHERE a.eventEndDate >= '${analDate}' ORDER BY a.eventEndDate ASC`,
+    (err, data) => {
+      if (!err) res.send(data);
+      else res.send(err);
+    }
+  );
+});
+
+app.get("/getTourInfo", function (req, res) {
+  db.query(
+    `
+    SELECT 
+      * 
+    FROM 
+      TourInfo a      
+      WHERE a.eventStartDate <= NOW()
+      AND a.eventEndDate >= NOW()
+      AND a.addr NOT LIKE '%제주특별%'
+    ORDER BY a.readcount ASC , ABS(DATEDIFF( NOW() , a.eventStartDate)) ASC;
+    `,
     (err, data) => {
       if (!err) res.send(data);
       else res.send(err);
